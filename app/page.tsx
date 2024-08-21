@@ -6,7 +6,12 @@ import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import { derivePath } from "ed25519-hd-key";
 import { Keypair } from "@solana/web3.js";
 import { keccak256 } from "js-sha3";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  ClipboardIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Home() {
   const [mnemonic, setMnemonic] = useState<string | null>(null);
@@ -34,15 +39,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!usingCustomMnemonic) {
-      // Generate mnemonic and seed only on the client-side
       const mnemonicGenerated = generateMnemonic();
       setMnemonic(mnemonicGenerated);
     }
   }, [usingCustomMnemonic]);
 
   function genSOLKeyPair(seed: Buffer) {
-    if (!mnemonic) return; // Ensure mnemonic is available
-    const path = `m/44'/501'/${keySOLPairArray.length + 1}'/0'`; // Derivation path
+    if (!mnemonic) return;
+    const path = `m/44'/501'/${keySOLPairArray.length + 1}'/0'`;
     const derivedSeed = derivePath(path, seed.toString("hex")).key;
     const secret = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
     const privateKeyBase58 = bs58.encode(secret);
@@ -60,8 +64,8 @@ export default function Home() {
   }
 
   function genETHKeyPair(seed: Buffer) {
-    if (!mnemonic) return; // Ensure mnemonic is available
-    const path = `m/44'/60'/${keyETHPairArray.length + 1}'/0'`; // Derivation path
+    if (!mnemonic) return;
+    const path = `m/44'/60'/${keyETHPairArray.length + 1}'/0'`;
     const derivedSeed = derivePath(path, seed.toString("hex")).key;
     const secret = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
     const publicKey = nacl.sign.keyPair.fromSeed(derivedSeed).publicKey;
@@ -136,6 +140,11 @@ export default function Home() {
     }
   }
 
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
+    alert("Copied to clipboard!");
+  }
+
   if (!mnemonic) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
@@ -160,14 +169,14 @@ export default function Home() {
       <h1 className="text-3xl text-decoration-line: underline mb-5">
         Ledger Wallet
       </h1>
-      <div className="text-center mb-4">
+      <div className="text-center mb-4 w-full max-w-lg">
         <div className="bg-gray-200 mb-5 dark:bg-gray-700 p-2 rounded-md">
           <p className="text-xl font-bold">Mnemonic :</p>
-          <div className="grid grid-cols-3 gap-2 mt-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
             {mnemonic.split(" ").map((word, index) => (
               <div
                 key={index}
-                className="bg-gray-300 dark:bg-gray-600 p-2 rounded-md text-center"
+                className="bg-gray-300 dark:bg-gray-600 p-2 rounded-md text-center text-sm md:text-base"
               >
                 {word}
               </div>
@@ -177,14 +186,14 @@ export default function Home() {
 
         <button
           onClick={() => genSOLKeyPair(seed)}
-          className="mt-4 text-black py-2 px-4 mr-4 rounded-md hover:bg-blue-600"
+          className="mt-4 w-full md:w-auto text-black py-2 px-4 mr-4 rounded-md hover:bg-blue-600"
           style={{ backgroundColor: darkButton1 }}
         >
           Generate Solana Wallet
         </button>
         <button
           onClick={() => genETHKeyPair(seed)}
-          className="mt-4 text-black py-2 px-4 rounded-md hover:bg-blue-600"
+          className="mt-4 w-full md:w-auto text-black py-2 px-4 rounded-md hover:bg-blue-600"
           style={{ backgroundColor: darkButton1 }}
         >
           Generate Ethereum Wallet
@@ -193,167 +202,172 @@ export default function Home() {
         {keySOLPairArray.length < 2 ? null : (
           <button
             onClick={deleteAllKeySOLPairs}
-            className="ml-4 text-black py-2 px-4 rounded-md hover:bg-red-600"
+            className="mt-4 w-full md:w-auto ml-0 md:ml-4 text-black py-2 px-4 rounded-md hover:bg-red-600"
             style={{ backgroundColor: darkButton2 }}
           >
-            Delete All Solana KeyPairs
+            Delete All Solana Accounts
           </button>
         )}
         {keyETHPairArray.length < 2 ? null : (
           <button
             onClick={deleteAllKeyETHPairs}
-            className="ml-4 text-black py-2 px-4 rounded-md hover:bg-red-600"
+            className="mt-4 w-full md:w-auto ml-0 md:ml-4 text-black py-2 px-4 rounded-md hover:bg-red-600"
             style={{ backgroundColor: darkButton2 }}
           >
-            Delete All Ethereum KeyPairs
+            Delete All Ethereum Accounts
           </button>
         )}
         {!usingCustomMnemonic && (
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col md:flex-row items-center w-full max-w-lg">
             <input
               type="text"
               value={customMnemonic}
               onChange={handleMnemonicChange}
               placeholder="Enter your 12-word mnemonic"
-              className="p-2 border rounded-md text-black"
+              className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 rounded-md w-full"
             />
             <button
               onClick={handleMnemonicSubmit}
-              className="ml-2 py-2 px-4 rounded-md hover:bg-green-600 text-black"
-              style={{ backgroundColor: darkButton1 }}
+              className="mt-2 md:mt-0 md:ml-2 w-full md:w-auto bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
             >
-              Use Custom Mnemonic
+              Submit Mnemonic
             </button>
           </div>
         )}
       </div>
-      {keySOLPairArray.length > 0 ? (
-        <div className="w-full max-w-4xl">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Generated Solana Key Pairs
-          </h2>
-          <ul className="space-y-4">
-            {keySOLPairArray.map((keyPair, index) => (
-              <li
-                key={index}
-                className="flex flex-col items-start space-y-4 bg-gray-200 dark:bg-gray-700 p-4 rounded-md"
-              >
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => toggleVisibilitySOL(index, "public")}
-                    className="text-gray-600 dark:text-gray-300"
-                  >
-                    {keyPair.isPublicVisible ? (
-                      <EyeSlashIcon className="w-6 h-6" />
-                    ) : (
-                      <EyeIcon className="w-6 h-6" />
-                    )}
-                  </button>
-                  <div className="flex-1">
-                    <div className="text-sm">
-                      <strong>Public Key:</strong>{" "}
-                      {keyPair.isPublicVisible
-                        ? keyPair.publicKeyBase58
-                        : "**********"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => toggleVisibilitySOL(index, "private")}
-                    className="text-gray-600 dark:text-gray-300"
-                  >
-                    {keyPair.isPrivateVisible ? (
-                      <EyeSlashIcon className="w-6 h-6" />
-                    ) : (
-                      <EyeIcon className="w-6 h-6" />
-                    )}
-                  </button>
-                  <div className="flex-1">
-                    <div className="text-sm mt-2">
-                      <strong>Private Key:</strong>{" "}
-                      {keyPair.isPrivateVisible
-                        ? keyPair.privateKeyBase58
-                        : "**********"}
-                    </div>
-                  </div>
-                </div>
+
+      {keySOLPairArray.length > 0 && (
+        <div className="text-left w-full max-w-lg mt-4">
+          <h2 className="text-2xl mb-2">Solana Wallets</h2>
+          {keySOLPairArray.map((keyPair, index) => (
+            <div
+              key={index}
+              className="bg-gray-200 dark:bg-gray-700 p-3 mb-2 rounded-md"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-bold">Public Key:</p>
                 <button
-                  onClick={() => deleteKeySOLPair(index)}
-                  className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600"
+                  onClick={() => toggleVisibilitySOL(index, "public")}
+                  className="ml-2"
                 >
-                  Delete
+                  {keyPair.isPublicVisible ? (
+                    <EyeIcon className="h-5 w-5 text-black" />
+                  ) : (
+                    <EyeSlashIcon className="h-5 w-5 text-black" />
+                  )}
                 </button>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <p className="break-all">
+                {keyPair.isPublicVisible ? keyPair.publicKeyBase58 : "********"}
+              </p>
+              <button
+                onClick={() => copyToClipboard(keyPair.publicKeyBase58)}
+                className="ml-2"
+              >
+                <ClipboardIcon className="h-5 w-5 text-black" />
+              </button>
+
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-bold">Private Key:</p>
+                <button
+                  onClick={() => toggleVisibilitySOL(index, "private")}
+                  className="ml-2"
+                >
+                  {keyPair.isPrivateVisible ? (
+                    <EyeIcon className="h-5 w-5 text-black" />
+                  ) : (
+                    <EyeSlashIcon className="h-5 w-5 text-black" />
+                  )}
+                </button>
+              </div>
+              <p className="break-all">
+                {keyPair.isPrivateVisible
+                  ? keyPair.privateKeyBase58
+                  : "********"}
+              </p>
+              <button
+                onClick={() => copyToClipboard(keyPair.privateKeyBase58)}
+                className="ml-2"
+              >
+                <ClipboardIcon className="h-5 w-5 text-black" />
+              </button>
+
+              <button
+                onClick={() => deleteKeySOLPair(index)}
+                className="ml-2 mt-2 bg-red-600 text-white py-1 px-2 rounded-md hover:bg-red-700"
+              >
+                <TrashIcon className="h-5 w-5 text-white" />
+              </button>
+            </div>
+          ))}
         </div>
-      ) : (
-        <></>
       )}
-      {keyETHPairArray.length > 0 ? (
-        <div className="w-full max-w-4xl mt-4">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Generated Ethereum Key Pairs
-          </h2>
-          <ul className="space-y-4">
-            {keyETHPairArray.map((keyPair, index) => (
-              <li
-                key={index}
-                className="flex flex-col items-start space-y-4 bg-gray-200 dark:bg-gray-700 p-4 rounded-md"
-              >
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => toggleVisibilityETH(index, "public")}
-                    className="text-gray-600 dark:text-gray-300"
-                  >
-                    {keyPair.isPublicVisible ? (
-                      <EyeSlashIcon className="w-6 h-6" />
-                    ) : (
-                      <EyeIcon className="w-6 h-6" />
-                    )}
-                  </button>
-                  <div className="flex-1">
-                    <div className="text-sm">
-                      <strong>Public Key:</strong>{" "}
-                      {keyPair.isPublicVisible
-                        ? keyPair.publicKeyBase58
-                        : "**********"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => toggleVisibilityETH(index, "private")}
-                    className="text-gray-600 dark:text-gray-300"
-                  >
-                    {keyPair.isPrivateVisible ? (
-                      <EyeSlashIcon className="w-6 h-6" />
-                    ) : (
-                      <EyeIcon className="w-6 h-6" />
-                    )}
-                  </button>
-                  <div className="flex-1">
-                    <div className="text-sm mt-2">
-                      <strong>Private Key:</strong>{" "}
-                      {keyPair.isPrivateVisible
-                        ? keyPair.privateKeyBase58
-                        : "**********"}
-                    </div>
-                  </div>
-                </div>
+
+      {keyETHPairArray.length > 0 && (
+        <div className="text-left w-full max-w-lg mt-4">
+          <h2 className="text-2xl mb-2">Ethereum Wallets</h2>
+          {keyETHPairArray.map((keyPair, index) => (
+            <div
+              key={index}
+              className="bg-gray-200 dark:bg-gray-700 p-3 mb-2 rounded-md"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-bold">Public Key:</p>
                 <button
-                  onClick={() => deleteKeyETHPair(index)}
-                  className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600"
+                  onClick={() => toggleVisibilityETH(index, "public")}
+                  className="ml-2"
                 >
-                  Delete
+                  {keyPair.isPublicVisible ? (
+                    <EyeIcon className="h-5 w-5 text-black" />
+                  ) : (
+                    <EyeSlashIcon className="h-5 w-5 text-black" />
+                  )}
                 </button>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <p className="break-all">
+                {keyPair.isPublicVisible ? keyPair.publicKeyBase58 : "********"}
+              </p>
+              <button
+                onClick={() => copyToClipboard(keyPair.publicKeyBase58)}
+                className="ml-2"
+              >
+                <ClipboardIcon className="h-5 w-5 text-black" />
+              </button>
+
+              <div className="flex items-center justify-between mt-2">
+                <p className="font-bold">Private Key:</p>
+                <button
+                  onClick={() => toggleVisibilityETH(index, "private")}
+                  className="ml-2"
+                >
+                  {keyPair.isPrivateVisible ? (
+                    <EyeIcon className="h-5 w-5 text-black" />
+                  ) : (
+                    <EyeSlashIcon className="h-5 w-5 text-black" />
+                  )}
+                </button>
+              </div>
+              <p className="break-all">
+                {keyPair.isPrivateVisible
+                  ? keyPair.privateKeyBase58
+                  : "********"}
+              </p>
+              <button
+                onClick={() => copyToClipboard(keyPair.privateKeyBase58)}
+                className="ml-2"
+              >
+                <ClipboardIcon className="h-5 w-5 text-black" />
+              </button>
+
+              <button
+                onClick={() => deleteKeyETHPair(index)}
+                className="ml-2 mt-2 bg-red-600 text-white py-1 px-2 rounded-md hover:bg-red-700"
+              >
+                <TrashIcon className="h-5 w-5 text-white" />
+              </button>
+            </div>
+          ))}
         </div>
-      ) : (
-        <></>
       )}
     </div>
   );
