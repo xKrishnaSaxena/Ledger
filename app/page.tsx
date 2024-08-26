@@ -12,7 +12,7 @@ import {
   ClipboardIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-
+import solRpcMethods from "./../utils/solRpcMethods";
 export default function Home() {
   const [mnemonic, setMnemonic] = useState<string | null>(null);
   const [customMnemonic, setCustomMnemonic] = useState<string>("");
@@ -36,6 +36,7 @@ export default function Home() {
   >([]);
   const darkButton1 = "#e0e1dd";
   const darkButton2 = "#778da9";
+  const { getSolanaAccountInfo, getSolanaBalance } = solRpcMethods();
 
   useEffect(() => {
     if (!usingCustomMnemonic) {
