@@ -37,7 +37,7 @@ export default function Home() {
   const darkButton1 = "#e0e1dd";
   const darkButton2 = "#778da9";
   const { getSolanaAccountInfo, getSolanaBalance } = solRpcMethods();
-
+  console.log("Hello world!");
   useEffect(() => {
     if (!usingCustomMnemonic) {
       const mnemonicGenerated = generateMnemonic();
