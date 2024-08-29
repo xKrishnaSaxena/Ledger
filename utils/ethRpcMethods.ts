@@ -1,84 +1,72 @@
-async function getEthereumBalance(address: string) {
-  const response = await fetch(
-    "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_getBalance",
-        params: [address, "latest"],
-      }),
-    }
-  );
+import {
+  Connection,
+  PublicKey,
+  Keypair,
+  Transaction,
+  SystemProgram,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
 
-  const data = await response.json();
-  return data;
+export async function getSolanaAccountInfo(account: string): Promise<any> {
+  const response = await fetch("https://api.testnet.solana.com", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "getAccountInfo",
+      params: [account],
+    }),
+  });
+
+  return await response.json();
 }
 
-async function getEthereumBlockNumber() {
-  const response = await fetch(
-    "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_blockNumber",
-      }),
-    }
-  );
+export async function getSolanaBalance(account: string): Promise<any> {
+  const response = await fetch("https://api.testnet.solana.com", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "getBalance",
+      params: [account],
+    }),
+  });
 
-  const data = await response.json();
-  return data;
+  return await response.json();
 }
 
-// Usage example
-const balance = async () => {
-  await getEthereumBalance("0xaeaa570b50ad00377ff8add27c50a7667c8f1811");
-};
-console.log("ETH Balance:", balance);
-
-const blockNumber = async () => {
-  await getEthereumBlockNumber();
-};
-console.log("Latest Block Number:", blockNumber);
-
-//SEND
-import { ethers } from "ethers";
-
-async function sendEth(
-  fromPrivateKey: string,
+export async function sendSolanaTransaction(
+  fromKeypair: Keypair,
   toAddress: string,
-  amountInEther: string
-) {
-  const provider = new ethers.providers.InfuraProvider(
-    "mainnet",
-    "YOUR_INFURA_PROJECT_ID"
+  amount: number
+): Promise<string> {
+  const connection = new Connection(
+    "https://api.mainnet-beta.solana.com",
+    "confirmed"
   );
-  const wallet = new ethers.Wallet(fromPrivateKey, provider);
+  const toPublicKey = new PublicKey(toAddress);
 
-  const tx = {
-    to: toAddress,
-    value: ethers.utils.parseEther(amountInEther),
-  };
+  const transaction = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: fromKeypair.publicKey,
+      toPubkey: toPublicKey,
+      lamports: amount,
+    })
+  );
 
-  const transactionResponse = await wallet.sendTransaction(tx);
-  console.log("Transaction Hash:", transactionResponse.hash);
-
-  const receipt = await transactionResponse.wait();
-  console.log("Transaction was mined in block:", receipt.blockNumber);
+  return await sendAndConfirmTransaction(connection, transaction, [
+    fromKeypair,
+  ]);
 }
 
-// Usage example
-const fromPrivateKey = "0xYourPrivateKey"; // Sender's private key
-const toAddress = "0xRecipientPublicKey";
-const amountInEther = "0.1"; // Amount in ETH
-
-sendEth(fromPrivateKey, toAddress, amountInEther);
+export default {
+  getSolanaAccountInfo,
+  getSolanaBalance,
+  sendSolanaTransaction,
+};
