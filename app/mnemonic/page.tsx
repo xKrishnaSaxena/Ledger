@@ -135,7 +135,6 @@ export default function Page() {
   const generateNewSeed = () => {
     const mnemonicGenerated = generateMnemonic();
     setMnemonic(mnemonicGenerated);
-    setUsingCustomMnemonic(true);
     setKeyETHPairArray([]);
     setKeySOLPairArray([]);
     localStorage.setItem("keyETHPairArray", JSON.stringify([]));
