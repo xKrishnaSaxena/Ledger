@@ -21,9 +21,6 @@ import {
 import Spinner from "../components/Spinner";
 
 export default function Page() {
-  const storedMnemonic = localStorage.getItem("mnemonic");
-  const storedSOLPairs = localStorage.getItem("keySOLPairArray");
-  const storedETHPairs = localStorage.getItem("keyETHPairArray");
   const [mnemonic, setMnemonic] = useState<string | null>(null);
   const [customMnemonic, setCustomMnemonic] = useState<string>("");
   const [usingCustomMnemonic, setUsingCustomMnemonic] =
@@ -33,24 +30,6 @@ export default function Page() {
   const [isMnemonicVisible, setIsMnemonicVisible] = useState<boolean>(false);
 
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-
-  useEffect(() => {
-    if (storedMnemonic) {
-      setMnemonic(storedMnemonic);
-      setUsingCustomMnemonic(true);
-    } else {
-      const mnemonicGenerated = generateMnemonic();
-      setMnemonic(mnemonicGenerated);
-    }
-    if (storedSOLPairs) setKeySOLPairArray(JSON.parse(storedSOLPairs));
-    if (storedETHPairs) setKeyETHPairArray(JSON.parse(storedETHPairs));
-  }, []);
-
-  useEffect(() => {
-    if (mnemonic) localStorage.setItem("mnemonic", mnemonic);
-    localStorage.setItem("keySOLPairArray", JSON.stringify(keySOLPairArray));
-    localStorage.setItem("keyETHPairArray", JSON.stringify(keyETHPairArray));
-  }, [mnemonic, keySOLPairArray, keyETHPairArray]);
 
   const handleMnemonicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomMnemonic(e.target.value);
@@ -159,7 +138,26 @@ export default function Page() {
     setUsingCustomMnemonic(true);
     setKeyETHPairArray([]);
     setKeySOLPairArray([]);
+    localStorage.setItem("keyETHPairArray", JSON.stringify([]));
+    localStorage.setItem("keySOLPairArray", JSON.stringify([]));
   };
+  useEffect(() => {
+    const storedMnemonic = localStorage.getItem("mnemonic");
+    const storedSOLPairs = localStorage.getItem("keySOLPairArray");
+    const storedETHPairs = localStorage.getItem("keyETHPairArray");
+    if (storedMnemonic) {
+      setMnemonic(storedMnemonic);
+    } else {
+      const mnemonicGenerated = generateMnemonic();
+      setMnemonic(mnemonicGenerated);
+    }
+    if (storedSOLPairs) {
+      setKeySOLPairArray(JSON.parse(storedSOLPairs));
+    }
+    if (storedETHPairs) {
+      setKeyETHPairArray(JSON.parse(storedETHPairs));
+    }
+  }, []);
 
   if (!mnemonic) return <Spinner />;
 
@@ -168,7 +166,6 @@ export default function Page() {
   return (
     <div className="flex items-center justify-center h-screen text-gray-100 p-8">
       <div className="flex w-full max-w-7xl h-full overflow-hidden">
-        {/* Left Side: Mnemonic and Actions */}
         <div className="flex-none w-1/2 p-12 bg-darkGray rounded-lg shadow-lg">
           <p className="text-4xl font-bold text-white mb-8 flex justify-center">
             Mnemonic
@@ -232,7 +229,6 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Right Side: Wallet Information */}
         <div className="flex-grow w-1/2 p-12 overflow-y-auto">
           <div className="bg-darkGray p-6 rounded-lg shadow-md mb-8">
             <div className="flex justify-between items-center mb-6">
