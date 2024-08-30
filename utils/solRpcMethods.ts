@@ -7,25 +7,8 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
-export async function getSolanaAccountInfo(account: string): Promise<any> {
-  const response = await fetch("https://api.testnet.solana.com", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "getAccountInfo",
-      params: [account],
-    }),
-  });
-
-  return await response.json();
-}
-
 export async function getSolanaBalance(account: string): Promise<any> {
-  const response = await fetch("https://api.testnet.solana.com", {
+  const response = await fetch("https://api.devnet.solana.com", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -47,7 +30,7 @@ export async function sendSolanaTransaction(
   amount: number
 ): Promise<string> {
   const connection = new Connection(
-    "https://api.testnet.solana.com",
+    "https://api.devnet.solana.com",
     "confirmed"
   );
   const toPublicKey = new PublicKey(toAddress);
@@ -66,7 +49,6 @@ export async function sendSolanaTransaction(
 }
 
 export default {
-  getSolanaAccountInfo,
   getSolanaBalance,
   sendSolanaTransaction,
 };

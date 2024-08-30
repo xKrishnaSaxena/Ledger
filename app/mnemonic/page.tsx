@@ -18,13 +18,18 @@ import {
   ClipboardIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import Spinner from "../components/Spinner";
+import Spinner from "../components/ui/Spinner";
+import { getSolanaBalance } from "@/utils/solRpcMethods";
+import { getEthereumBalance } from "@/utils/ethRpcMethods";
+import Send from "../components/ui/Send";
 
 export default function Page() {
   const [mnemonic, setMnemonic] = useState<string | null>(null);
   const [customMnemonic, setCustomMnemonic] = useState<string>("");
   const [usingCustomMnemonic, setUsingCustomMnemonic] =
     useState<boolean>(false);
+  // const [balanceSOL, setBalanceSOL] = useState<string>("");
+  const [balanceETH, setBalanceETH] = useState<string>("");
   const [keySOLPairArray, setKeySOLPairArray] = useState<any[]>([]);
   const [keyETHPairArray, setKeyETHPairArray] = useState<any[]>([]);
   const [isMnemonicVisible, setIsMnemonicVisible] = useState<boolean>(false);
@@ -59,6 +64,7 @@ export default function Page() {
           publicKeyBase58,
           isPublicVisible: false,
           isPrivateVisible: false,
+          balance: 0,
         },
       ];
       localStorage.setItem("keySOLPairArray", JSON.stringify(newArray));
@@ -140,10 +146,49 @@ export default function Page() {
     localStorage.setItem("keyETHPairArray", JSON.stringify([]));
     localStorage.setItem("keySOLPairArray", JSON.stringify([]));
   };
+  async function handleCheckBalanceSOL(pubKey: string) {
+    try {
+      const data = await getSolanaBalance(pubKey);
+      const lamports = data.result.value;
+
+      if (lamports === 0) {
+        alert("This account does not have any balance.");
+        return;
+      }
+
+      const balanceInSol = (lamports / LAMPORTS_PER_SOL).toFixed(9);
+
+      setKeySOLPairArray((prevArray) => {
+        const updatedArray = prevArray.map((item) =>
+          item.publicKeyBase58 === pubKey
+            ? { ...item, balance: balanceInSol }
+            : item
+        );
+        localStorage.setItem("keySOLPairArray", JSON.stringify(updatedArray));
+
+        return updatedArray;
+      });
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      alert("Failed to fetch balance. Please try again.");
+    }
+  }
+
+  async function handleCheckBalanceETH(pubKey: string) {
+    const data = await getEthereumBalance(pubKey);
+    const balanceETH = data.result;
+
+    if (balanceETH === "0x0") {
+      alert("This account does not have any balance.");
+      return;
+    }
+    setBalanceETH(balanceETH);
+  }
   useEffect(() => {
     const storedMnemonic = localStorage.getItem("mnemonic");
     const storedSOLPairs = localStorage.getItem("keySOLPairArray");
     const storedETHPairs = localStorage.getItem("keyETHPairArray");
+
     if (storedMnemonic) {
       setMnemonic(storedMnemonic);
     } else {
@@ -223,7 +268,7 @@ export default function Page() {
               className="text-black py-3 px-6 mt-5 rounded-md hover:bg-blue-600 text-lg"
               style={{ backgroundColor: "#e0e1dd" }}
             >
-              Generate Ethereum Wallet (Goerli)
+              Generate Ethereum Wallet (Sepolia)
             </button>
           </div>
         </div>
@@ -283,14 +328,26 @@ export default function Page() {
                     <ClipboardIcon className="h-5 w-5 inline" />
                   </button>
                 </p>
+                {wallet.balance == 0 ? (
+                  <></>
+                ) : (
+                  <p className="text-lg mt-2">Balance ={wallet.balance} SOL</p>
+                )}
+
                 <div className="flex mt-6 space-x-3">
-                  <button className="bg-lightGray text-white py-2 px-4 rounded-md text-lg">
-                    Send
-                  </button>
-                  <button className="bg-lightGray text-white py-2 px-4 rounded-md text-lg">
+                  <Send wallet={wallet} />
+                  <button
+                    className="bg-lightGray text-white py-2 px-4 rounded-md text-lg"
+                    onClick={() => copyToClipboard(wallet.publicKeyBase58)}
+                  >
                     Receive
                   </button>
-                  <button className="bg-lightGray text-white py-2 px-4 rounded-md text-lg">
+                  <button
+                    className="bg-lightGray text-white py-2 px-4 rounded-md text-lg"
+                    onClick={() =>
+                      handleCheckBalanceSOL(wallet.publicKeyBase58)
+                    }
+                  >
                     Check Balance
                   </button>
                   <button
@@ -357,6 +414,9 @@ export default function Page() {
                     <ClipboardIcon className="h-5 w-5 inline" />
                   </button>
                 </p>
+                {balanceETH && (
+                  <p className="text-lg mt-2">Balance ={balanceETH} SOL</p>
+                )}
                 <div className="flex mt-6 space-x-3">
                   <button className="bg-lightGray text-white py-2 px-4 rounded-md text-lg">
                     Send
@@ -364,7 +424,13 @@ export default function Page() {
                   <button className="bg-lightGray text-white py-2 px-4 rounded-md text-lg">
                     Receive
                   </button>
-                  <button className="bg-lightGray text-white py-2 px-4 rounded-md text-lg">
+
+                  <button
+                    className="bg-lightGray text-white py-2 px-4 rounded-md text-lg"
+                    onClick={() => {
+                      handleCheckBalanceETH(wallet.publicKeyBase58);
+                    }}
+                  >
                     Check Balance
                   </button>
                   <button
