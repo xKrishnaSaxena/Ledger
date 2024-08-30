@@ -22,6 +22,7 @@ import Spinner from "../components/ui/Spinner";
 import { getSolanaBalance } from "@/utils/solRpcMethods";
 import { getEthereumBalance } from "@/utils/ethRpcMethods";
 import Send from "../components/ui/Send";
+import Import from "../components/ui/Import";
 
 export default function Page() {
   const [mnemonic, setMnemonic] = useState<string | null>(null);
@@ -124,19 +125,25 @@ export default function Page() {
   };
 
   const deleteKeySOLPair = (index: number) => {
-    setKeySOLPairArray(keySOLPairArray.filter((_, i) => i !== index));
+    const updatedSOLPairs = keySOLPairArray.filter((_, i) => i !== index);
+    setKeySOLPairArray(updatedSOLPairs);
+    localStorage.setItem("keySOLPairArray", JSON.stringify(updatedSOLPairs));
   };
 
   const deleteKeyETHPair = (index: number) => {
-    setKeyETHPairArray(keyETHPairArray.filter((_, i) => i !== index));
+    const updatedETHPairs = keyETHPairArray.filter((_, i) => i !== index);
+    setKeyETHPairArray(updatedETHPairs);
+    localStorage.setItem("keyETHPairArray", JSON.stringify(updatedETHPairs));
   };
 
   const deleteAllKeySOLPairs = () => {
     setKeySOLPairArray([]);
+    localStorage.setItem("keySOLPairArray", JSON.stringify([]));
   };
 
   const deleteAllKeyETHPairs = () => {
     setKeyETHPairArray([]);
+    localStorage.setItem("keyETHPairArray", JSON.stringify([]));
   };
   const generateNewSeed = () => {
     const mnemonicGenerated = generateMnemonic();
@@ -184,6 +191,13 @@ export default function Page() {
     }
     setBalanceETH(balanceETH);
   }
+
+  const copyMnemonicToClipboard = () => {
+    if (mnemonic) {
+      copyToClipboard(mnemonic);
+    }
+  };
+
   useEffect(() => {
     const storedMnemonic = localStorage.getItem("mnemonic");
     const storedSOLPairs = localStorage.getItem("keySOLPairArray");
@@ -231,11 +245,21 @@ export default function Page() {
             {isMnemonicVisible ? "Hide Seed Phrase" : "Show Seed Phrase"}
           </button>
           <button
-            onClick={() => generateNewSeed()}
+            onClick={() => copyMnemonicToClipboard()}
             className="bg-blue-500 text-white py-3 ml-5 px-6 rounded-md text-lg"
+          >
+            Copy Mnemonic
+          </button>
+          <button
+            onClick={() => generateNewSeed()}
+            className="bg-blue-500 text-white py-3 mt-5 px-6 rounded-md text-lg"
           >
             Generate New Seed Phrase
           </button>
+          <Import
+            setKeySOLPairArray={setKeySOLPairArray}
+            keySOLPairArray={keySOLPairArray}
+          />
 
           {!usingCustomMnemonic && (
             <div className="mt-8 flex flex-col md:flex-row items-center w-full">
