@@ -67,7 +67,7 @@ export default function Send(wallet: any) {
         <DialogHeader>
           <DialogTitle className="text-white">Send Solana</DialogTitle>
           <DialogDescription>
-            Enter the recipient's address and the amount of SOL to send.
+            Enter the recipient&apos;s address and the amount of SOL to send.
           </DialogDescription>
         </DialogHeader>
         {loading ? (
